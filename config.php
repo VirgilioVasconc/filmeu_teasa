@@ -1,9 +1,9 @@
 <?php
 // Connect to database
-$servername = "localhost";
+$servername = "";
 $username = "";
 $password = "";
-$dbname = "";
+$dbname = "teasa_filmeu";
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection

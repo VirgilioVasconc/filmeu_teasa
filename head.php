@@ -4,10 +4,10 @@
     
 
 
-    <link href="/js/fontawesome-free-6.4.0-web/css/fontawesome.css" rel="stylesheet">
-    <link href="/js/fontawesome-free-6.4.0-web/css/solid.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" rel="stylesheet">
 
-    <link  href="/css/cropper.min.css" rel="stylesheet">
+    <link  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -817,7 +817,7 @@ $all_genders = $result->fetch_all();
 		</div>
 	</main>
     <!-- JavaScript code -->
-    <script src="js/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script>
 
       const imageInput = document.getElementById('film_thumbnail_image');
