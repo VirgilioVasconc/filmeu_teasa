@@ -19,6 +19,18 @@ while ($row = $result->fetch_assoc()) {
     $duration_min = (int) ( 1 + ( $row['duration_min'] / 60) );
 }
 
+//get ids and film titles for carousel
+$query = "SELECT film_id, film_title, film_release_year FROM teasa_films WHERE entry_disabled=0 ORDER BY film_id ASC;";
+$result = $conn->query($query);
+while ($row = $result->fetch_assoc()) {
+	// Fetch associative array
+    $carousel[] = array(
+            'film_id' => $row['film_id'],
+            'film_title' => $row['film_title'],
+            'film_release_year' => $row['film_release_year']
+    );
+}
+
 //get unique film titles, combining both original and english titles
 $query = "SELECT film_title AS titles FROM teasa_films UNION SELECT film_alt_title AS titles FROM teasa_films WHERE entry_disabled=0 ORDER BY titles ASC;";
 $result = $conn->query($query);
@@ -69,6 +81,46 @@ $result = $conn->query($query);
 $genders = $result->fetch_all();
 $genders_json = json_encode($genders);
 
+
+function getFilmNumbers() {
+    $filmNumbers = [];
+
+    // Directory path
+    $dir = 'img/films';
+
+    // Check if directory exists
+    if (is_dir($dir)) {
+        // Open directory
+        if ($dh = opendir($dir)) {
+            // Read directory contents
+            while (($file = readdir($dh)) !== false) {
+                // Extract numbers from filename
+                if (preg_match('/^(\d+)_tn\.png$/', $file, $matches)) {
+                    $filmNumbers[] = $matches[1];
+                }
+            }
+            // Close directory
+            closedir($dh);
+        }
+    }
+
+    // Shuffle the film numbers array
+    shuffle($filmNumbers);
+
+    return $filmNumbers;
+}
+$randomFilmNumbers = getFilmNumbers();
+
+function getFilmTitleById($filmData, $filmId) {
+    foreach ($filmData as $film) {
+        if ($film['film_id'] == $filmId) {
+			$title = $film['film_title'] . " (" .  $film['film_release_year'] . ")";
+            return $title;
+        }
+    }
+    return null; // Return null if film ID is not found
+}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -76,193 +128,318 @@ $genders_json = json_encode($genders);
 <body>
 	<?php require_once "header.php"; ?>
 	<main>
-	    <div class="main clearfix">
-		<span class="tip">TEASA is a database of animated short films from across Europe. You can search for films based on various criteria.</span>
-		<h2>Search for a film's title:</h2>
-		<div class="form">
-			<form class="search" name="title_search" action="search.php" method="get">
-				<span id="search_box">
-					<input type="search" id="query" autofocus name="query" placeholder="Search for a film..." autocomplete="off" />
-				</span>
-				<hr />
-				<button type="submit">Search</button>
-			</form>
-		</div>
-
-		<h2>Or try an advanced search:</h2>
-		<div class="form">
-			<span class="tip">Tip: Hold down the Ctrl (PC) or Command (Mac) button to select multiple options.</span>
-			<form class="advanced_form" name="advanced_search" action="search.php" method="post">			
-
-				<div class="advanced_form" id="director">
-					<label for="director[]">Director(s):</label>
-					<select id="director[]" name="director[]" multiple>
-						<option value="Any" selected>Any</option>
-						<?php
-						foreach ($directors as $i) {
-						echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
-						}
-						?>
-					</select>
-				</div>
-
-				<div class="advanced_form" id="director_gender">
-					<label for="gender[]">Director's gender:</label>
-					<select id="gender[]" name="gender[]" multiple>
-						<option value="Any" selected>Any</option>
-						<?php
-						foreach ($genders as $i) {
-						echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
-						}
-						?>
-					</select>
-				</div>
-
-					
-				<div class="advanced_form" id="studio">
-					<label for="studio[]">Production house(s):</label>
-					<select id="studio[]" name="studio[]" multiple>
-						<option value="Any" selected>Any</option>
-						<?php
-						foreach ($studios as $i) {
-						echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
-						}
-						?>
-					</select>
-				</div>
-
+		<div class="tn-carousel">
+			<div class="tn-slider">
+				<?php
 				
-				
-				<div class="advanced_form" id="film_release_year">
-					<label for="year_start">Release year</label>
-					<div class="from_to">
-						<div>
-						<label for="year_start">From:</label>
-						<select id="year_start" name="year_start">
-							<option value="Any">Any</option>
-							<?php
-							for ( $i=$year_min; $i<=$year_max; $i++ ) {
-							echo "<option>$i</option>";
-							}
-							?>
-						</select>
-						</div>
-						<div>
-						<label for="year_end">To:</label>
-						<select id="year_end" name="year_end">
-							<option value="Any">Any</option>
-							<?php
-							for ( $i=$year_min; $i<=$year_max; $i++ ) {
-							echo "<option>$i</option>";
-							}
-							?>
-						</select>
-						</div>
+				// Assuming $randomFilmNumbers contains the list of film numbers
+				foreach ($randomFilmNumbers as $filmNumber) {
+					// Get film details from the database based on film number
+					// Replace this with your actual database query
+					$filmTitle = getFilmTitleById($carousel, $filmNumber);
+					?>
+					<div>
+						<a class="carousel" href="details.php?id=<?php echo $filmNumber; ?>">
+							<img src="img/films/<?php echo $filmNumber; ?>_tn.png" alt="<?php echo $filmTitle; ?>">
+							<div class="carousel-film-title"><?php echo $filmTitle; ?></div>
+						</a>
 					</div>
-				</div>
-				
-				<div class="advanced_form" id="film_duration">
-					<label for="duration_start">Duration</label>
-					<div class="from_to">
-						<div>
-						<label for="duration_start">From:</label>
-						<select id="duration_start" name="duration_start">
-							<option value="Any">Any</option>
-							<?php
-							for ( $i=$duration_min; $i<=$duration_max; $i++ ) {
-							echo "<option value='$i'>$i min</option>";
-							}
-							?>
-						</select>
-						</div>
-						<div>
-						<label for="duration_end">To:</label>
-						<select id="duration_end" name="duration_end">
-							<option value="Any">Any</option>
-							<?php
-							for ( $i=$duration_min; $i<=$duration_max; $i++ ) {
-							echo "<option value='$i'>$i min</option>";
-							}
-							?>
-						</select>
-						</div>
-					</div>
-				</div>
-				
-				<div class="advanced_form" id="country">
-					<label for="country[]">Country of production:</label>
-					<select id="country[]" name="country[]" multiple>
-						<option value="Any" selected>Any</option>
-						<?php
-						foreach ($countries as $i) {
-						echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
-						}
-						?>
-					</select>
-				</div>
-
-				
-				
-				<div class="advanced_form" id="language">
-					<label for="language[]">Language(s):</label>
-					<select id="language[]" name="language[]" multiple>
-						<option value="Any" selected>Any</option>
-						<?php
-						foreach ($languages as $i) {
-						echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
-						}
-						?>
-					</select>
-				</div>
-				
-				<div class="advanced_form" id="tag">
-					<label for="tag[]">Attributed tag(s):</label>
-					<select id="tag[]" name="tag[]" multiple>
-						<option value="Any" selected>Any</option>
-						<?php
-						$tag_category=false;
-						foreach ( $tags as $tag ) {
-							if ( $tag_category != $tag[4]) {
-								if ( $tag_category != false ) {
-									echo "</optgroup>";
-								}
-								$tag_category = $tag[4];
-								echo "<optgroup label='&#x2022; ". $tag[4] .":'>";
-							}
-							echo "<option value=" . $tag[0] . ">&nbsp;" . $tag[1] . "</option>";
-						}    
-						?>
-					</select>
-				</div>
-
-				<hr />
-					<div align="center">
-						<label for="result_type">Desired result:</label><br />
-						<select name="result_type">
-							<option value="list" selected>List of films</option>
-							<option value="chart">Chart by year</option>
-							<option value="playlist">Playlist</option>
-						</select>
-					</div>
-				<hr />
-				
-				<button type="submit">Search</button>
-				<input type="hidden" name="criteria" id="criteria" />
-			</form>
+					<?php
+				}
+				?>
 			</div>
-	    </div>
+		</div>
+		
+	    <div class="main clearfix">
+			&nbsp;
+			<p>
+				TEASA is a database of animated short films from across Europe, created as a research pilot project from <a href="https://www.filmeu.eu/">FilmEU</a>. Our goal is to help animation scholars and enthusiasts to develop further academic investigations into the field of animation.
+			</p>
+			<p>
+				You can search and create playlists, charts and custom selections of films in the form below based on various criteria. The code for this project is <a href="https://github.com/VirgilioVasconc/filmeu_teasa/" target="_blank">open and freely available to use and change on GitHub</a>.
+			</p>
+
+			<div id="main-action">
+				<label for="global_result_type">Choose your search format:</label>
+				<select id="global_result_type" style="width:auto;max-width:100%;height:1.5em;background-color:#84acea">
+					<option value="list" selected>a detailed list</option>
+					<option value="playlist">a playlist you can watch</option>
+					<option value="chart">a chart of films by year</option>
+					<option value="film">one specific film</option>
+				</select>
+			</div>
+		
+			<div class="form" id="advanced-form">
+				Choose your criteria below: <br/>
+				<input name="filter_type" value="all" id="allfilms" type="radio" checked="checked" /> <label for="allfilms">All films</label>
+				|
+				<input name="filter_type" value="filter" id="filter" type="radio" />  <label for="filter">Filter by... </label>
+				<form class="advanced_form" name="advanced_search" action="search.php" method="post">
+					<table id="tbl_advanced_form">
+						<tr>
+							<td class="label">
+								<label for="director[]">Director(s):</label>
+							</td>
+							<td class="field">
+								<select id="director[]" name="director[]" class="totalWidth" data-placeholder="Choose as many as you want. Leave it blank for all." multiple>
+									<option value="Any">All</option>
+									<?php
+									foreach ($directors as $i) {
+									echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="gender[]">Director's gender:</label>
+							</td>
+							<td class="field">
+								<select id="gender[]" name="gender[]" class="totalWidth" data-placeholder="Choose as many as you want. Leave it blank for all." multiple>
+									<option value="Any">Any</option>
+									<?php
+									foreach ($genders as $i) {
+									echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
+									}
+									?>
+								</select>
+						</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="studio[]">Production house(s):</label>
+							</td>
+							<td class="field">
+								<select id="studio[]" name="studio[]" class="totalWidth" data-placeholder="Choose as many as you want. Leave it blank for all." multiple>
+									<option value="Any">All</option>
+									<?php
+									foreach ($studios as $i) {
+									echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="year_start">Release year between</label>
+							</td>
+							<td class="field">
+								<select id="year_start" name="year_start">
+									<option value="Any">Any</option>
+									<?php
+									for ( $i=$year_min; $i<=$year_max; $i++ ) {
+									echo "<option>$i</option>";
+									}
+									?>
+								</select>
+								<label for="year_end">and</label>
+								<select id="year_end" name="year_end">
+									<option value="Any">Any</option>
+									<?php
+									for ( $i=$year_min; $i<=$year_max; $i++ ) {
+									echo "<option>$i</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="duration_start">Duration between</label>
+							</td>
+							<td class="field">
+								<select id="duration_start" name="duration_start">
+									<option value="Any">Any</option>
+									<?php
+									for ( $i=$duration_min; $i<=$duration_max; $i++ ) {
+									echo "<option value='$i'>$i min</option>";
+									}
+									?>
+								</select>
+								<label for="duration_end">and</label>
+								<select id="duration_end" name="duration_end">
+									<option value="Any">Any</option>
+									<?php
+									for ( $i=$duration_min; $i<=$duration_max; $i++ ) {
+									echo "<option value='$i'>$i min</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="country[]">Country of production:</label>
+							</td>
+							<td class="field">
+								<select id="country[]" name="country[]" class="totalWidth" data-placeholder="Choose as many as you want. Leave it blank for all." multiple>
+									<option value="Any">All</option>
+									<?php
+									foreach ($countries as $i) {
+									echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="language[]">Language(s):</label>
+							</td>
+							<td class="field">
+								<select id="language[]" name="language[]" class="totalWidth" data-placeholder="Choose as many as you want. Leave it blank for all." multiple>
+									<option value="Any">Any</option>
+									<?php
+									foreach ($languages as $i) {
+									echo "<option value='" . $i[0] . "'>" . $i[1] . "</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								<label for="tag[]">Tag(s):</label>
+							</td>
+							<td class="field">
+								<select id="tag[]" name="tag[]" class="totalWidth" data-placeholder="Choose as many as you want. Leave it blank for all." multiple>
+									<?php
+									$tag_category=false;
+									foreach ( $tags as $tag ) {
+										if ( $tag_category != $tag[4]) {
+											if ( $tag_category != false ) {
+												echo "</optgroup>";
+											}
+											$tag_category = $tag[4];
+											echo "<optgroup label='&#x2022; ". $tag[4] .":'>";
+										}
+										echo "<option value=" . $tag[0] . ">&nbsp;" . $tag[1] . "</option>";
+									}    
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr id="tr-chart">
+							<td class="label">
+								<label for="chart_by">Chart results by:</label>
+							</td>
+							<td class="field">
+								<select id="chart_by" name="chart_by" class="totalWidth" width="100%" data-placeholder="Choose one.">
+									<option value="year">Year</option>
+									<option value="country">Country of production</option>
+									<option value="language">Language</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+					<hr />
+
+					<input type="hidden" name="result_type" id="result_type" value="list" />
+					<input type="hidden" name="criteria" id="criteria" />
+					
+					<button type="submit">Search</button>
+					
+				</form>
+			</div>
+			<div class="form" id="basic-form">
+				<form class="search" name="title_search" action="search.php" method="get">
+					<span id="search_box">
+						<input type="search" id="query" autofocus name="query" placeholder="Search for a film..." autocomplete="off" />
+					</span>
+					<hr />
+					<button type="submit">Search</button>
+				</form>
+			</div>
+		</div>
 	</main>
 	<?php require_once "footer.php"; ?>
 	
 	<!-- Include any necessary JavaScript files here -->
 	
 	<script src="js/fuse.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.slim.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tiny-slider/2.9.3/min/tiny-slider.js"></script>
+	
+
 	<script type="text/javascript">
+		/* carousel */
+		document.addEventListener('DOMContentLoaded', function () {
+			var slider = tns({
+			  container: '.tn-slider',
+			  mode: "carousel",
+			  items: 7,
+			  slideBy: 1,
+			  autoplay: true,
+			  autoplayButton: false,
+			  mouseDrag: false,
+			  controls: false,
+			  nav: false,
+			  edgePadding: 5,
+			  autoWidth: true,
+			  responsive: {
+				200: {
+					gutter: 20,
+					items: 1
+				  },
+				400: {
+					gutter: 30,
+					items: 2
+				  },
+				700: {
+					items: 3
+				},
+				900: {
+					items: 4
+				  },
+			  }
+			});
+		});
+		/* end carousel */
+
+		$(document).ready(function() {
+			$('select').select2({
+				    theme: 'bootstrap-5'
+			});
+			$("#tr-chart").hide();
+			$("#tbl_advanced_form").hide();
+
+			$("#allfilms").click(function() {
+				$("#tbl_advanced_form").hide();
+				$("form.advanced_form").reset();
+			});
+			$("#filter").click(function() {
+				$("form.advanced_form").trigger("reset");
+				$("#tbl_advanced_form").show();
+			});
+			
+			$("#global_result_type").change(function() {
+				$("#result_type").val($(this).val());
+				if ( $(this).val() == "film" ){
+					$("#advanced-form").hide();
+					$("#basic-form").show();
+				} else {
+					$("#advanced-form").show();
+					$("#basic-form").hide();
+					if ( $(this).val() == "chart" ){
+						$("#tr-chart").hide();
+						//$("#tr-chart").show();
+					} else {
+						//$("#tr-chart").show();
+						$("#tr-chart").hide();
+					}
+				}
+			});
+		});
 		
 		$(".tip").click(function(){
 			$(this).fadeOut();
 		});
+
+		
 		
 		const jsonEncodedFilms = JSON.stringify(<?php echo $titles; ?>);
 	   // Parse the JSON encoded variable
@@ -382,6 +559,7 @@ $genders_json = json_encode($genders);
 			}
 		}
 		
+		/*
 		function getCriteria(field){
 			var e = document.getElementById(field);
 			field = field.replace("[]","");
@@ -401,8 +579,8 @@ $genders_json = json_encode($genders);
 		
 		document.forms.advanced_search.onsubmit = function(){
 			var criteria ="";
-
 			criteria += getCriteria("director[]");
+			
 			criteria += getCriteria("gender[]");
 			criteria += getCriteria("studio[]");
 			criteria += getCriteria("country[]");
@@ -412,6 +590,7 @@ $genders_json = json_encode($genders);
 			criteria += getCriteria("duration_end");
 			criteria += getCriteria("year_start");
 			criteria += getCriteria("year_end");
+			
 
 			criteria = criteria.replace("Duration_start(s)", "Min. duration");
 			criteria = criteria.replace("Duration_end(s)", "Max. duration");
@@ -427,12 +606,8 @@ $genders_json = json_encode($genders);
 			
 			//return false;
 		}
-			
-			
-		//});
-		//form.action = `search.php?query=${query}&category=${category}`;
-		//form.title_search.submit();
-		
+		*/
+
 	</script>
 </body>
 </html>
