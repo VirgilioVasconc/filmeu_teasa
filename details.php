@@ -608,8 +608,8 @@ $all_genders = $result->fetch_all();
 
                             <!-- BUTTONS -->
                             <div class='item_field clearfix'>
-                                <button type="submit">Save</button>
-                                <button type="reset">Cancel</button>
+                                <button class="submit" type="submit">Save</button>
+                                <button class="reset" type="reset">Cancel</button>
                             </div>
 
                             <!--
@@ -819,7 +819,8 @@ $all_genders = $result->fetch_all();
     <!-- JavaScript code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script>
-
+        const user_logged_in = false;
+        
       const imageInput = document.getElementById('film_thumbnail_image');
       const previewImage = document.getElementById('preview-image');
 
@@ -972,6 +973,20 @@ $all_genders = $result->fetch_all();
             displayVideo(this.value);
         });
 
+        function toggleFormElements(logged_in) {
+            // Disable all form inputs
+            var formInputs = document.querySelectorAll('input, select, button, textarea');
+            formInputs.forEach(function(input) {
+                input.disabled = !logged_in;
+            });
+
+            // Hide elements with class "add" and "delete"
+            var elementsToHide = document.querySelectorAll('.add, .delete, .submit, .reset');
+            elementsToHide.forEach(function(element) {
+                element.style.display = !logged_in ? 'none' : 'block';
+            });
+        }
+        toggleFormElements(user_logged_in);
     </script>
 </body>
 </html>
