@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Open Sans', sans-serif;
-  font-size: 1.3em;
+  font-size: 1.1em;
   max-width: 100%;
 }
 
@@ -11,11 +11,27 @@ header {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-/*
-  padding: 20px;
-*/
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width:100%;
+  padding-left: 15em;
+  padding-right: 15em;
+}
+
+div.main {
+  align-items: center;
+  padding-left: 15em;
+  padding-right: 15em;
+}
+
+/* Media query for screens smaller than 768px (typical mobile devices) */
+@media (max-width: 768px) {
+  header {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  div.main {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
 }
 
 header img {
@@ -24,12 +40,53 @@ header img {
 
 nav {
   display: flex;
-  display: none;
   justify-content: space-between;
   align-items: center;
   background-color: #f2f2f2;
   height: 60px;
   padding: 0 20px;
+}
+
+.nav-links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-link {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+/* Hamburger icon */
+.hamburger {
+  display: none; /* Initially hidden on larger screens */
+  cursor: pointer;
+}
+
+/* Media query for screens smaller than 768px (typical mobile devices) */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column; /* Stack items vertically */
+    height: auto; /* Adjust height dynamically based on content */
+    padding: 10px 20px; /* Add some vertical padding */
+  }
+
+  .nav-links {
+    display: none; /* Hide navigation links by default on mobile */
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .nav-link {
+    margin: 10px 0;
+  }
+
+  .hamburger {
+    display: block; /* Display hamburger icon */
+  }
 }
 
 nav ul {
@@ -53,44 +110,25 @@ nav li a:hover {
   border-radius: 3px;
 }
 
-p {
-    font-size: 1.3em;
-}
-
-p.result_criteria{
-    font-size: .8em;
-}
-
-table {
-    border: none;
-}
-table td {
-    padding: 10px;
-    margin: none;
-}
-table thead tr {
-    background-color: black;
-    color: white;
-    font-weight: 500;
-}
-table tbody tr.odd {
-    background-color: #F2F2F2;
-}
-table tbody tr.even {
-    background-color: #F5F5F5;
-}
-
 main {
   align-items: center;
-  padding-top: 1em;
   padding-bottom: 1em;
   color: #1C1C1C;
 }
 
-div.main {
-  align-items: center;
+div#main-action {
+  text-align: center;
+  margin: auto;
+  padding: 1em;
+  font-size: 1.5em;
+  background: linear-gradient(to bottom, #1D4688 0%, #4285F4 100%);
+  color: #FFED64;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
-
+div#main-action label {
+  font-weight: bold;
+}
 
 h1, h2, h3, h4, h5, h6 {
     margin-left: 40px;
@@ -98,6 +136,17 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 100%;
 }
 
+p {
+    font-size: 1.1em;
+}
+
+p.result_criteria{
+    font-size: .8em;
+}
+
+div#basic-form {
+    display:none;
+}
 
 form.update {
   padding: 20px;
@@ -128,7 +177,6 @@ form.advanced_form {
     flex-flow: wrap;
     justify-content: space-around;
     max-width: 100%;
-    
 }
 form.search hr {
     border: none;
@@ -150,7 +198,6 @@ form label {
 }
 
 form.details label {
-  display: block;
   font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: .5em;
@@ -178,6 +225,14 @@ div.newEntry {
     background-color: #F2F2F2;
 }
 
+div#advanced-form{
+    text-align:center;
+}
+
+.select2-container--bootstrap-5 .select2-selection, .select2-container {
+    font-size: unset;
+    display: inline-block; !important
+}
 
 input[type="text"],
 input[type="password"],
@@ -192,6 +247,12 @@ select {
     border: solid #DEDEDE 1px;
     padding: .5em;
     margin-bottom:1em;
+    max-width: 30em;
+
+}
+
+select.totalWidth {
+    width: 100%;
 }
 
 input:invalid{
@@ -479,6 +540,73 @@ footer p{
   display: table;
 }
 
+
+/* table */
+table {
+    border: none;
+}
+table td {
+    padding: 10px;
+    margin: none;
+}
+table thead tr {
+    background-color: black;
+    color: white;
+    font-weight: 500;
+}
+table tbody tr.odd {
+    background-color: #F2F2F2;
+}
+table tbody tr.even {
+    background-color: #F5F5F5;
+}
+td.label {
+    text-align: right;
+}
+td.field {
+    text-align: left;
+}
+/* end table */
+/* carousel */
+.tn-carousel {
+  background: black;
+  margin: 0 auto;
+  padding: 5px;
+}
+
+div.tns-outer>button{
+    display: none;
+}
+
+.tn-carousel img {
+  width: 268px;
+  height: 358px;
+  object-fit: contain;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: .7;
+  transition: opacity 0.3s ease-in-out; /* Transition for opacity */
+}
+.tn-carousel img:hover {
+  opacity: 1; /* Adjust opacity as desired */
+}
+
+.tn-carousel .carousel-film-title {
+  margin-top: 5px;
+  text-align: center;
+  color: white;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+a.carousel {
+  text-decoration:none;
+  font-weight:normal;
+}
+a.carousel:hover {
+  font-weight:bold;
+}
+/* end carousel */
 
 
 #player {
