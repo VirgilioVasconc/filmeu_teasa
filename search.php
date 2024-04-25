@@ -3,7 +3,7 @@
 //ini_set('display_startup_errors', '1');
 //error_reporting(E_ALL);
 // if the search query is empty, redirect to the start page
-if (empty($_POST["director"]) && empty($_GET['query'])) {
+if (empty($_POST["result_type"]) && empty($_GET['query'])) {
 	header('Location: index.php');
 	exit;
 }
@@ -18,7 +18,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 			<button class="back" onclick="history.back();"><i class="fa fa-arrow-left"> </i> Back</button>
 			<h1 class="mb-4">Search Results</h1>
 			<?php
-
+			
 				// Include config file
 				require_once "config.php";
 				// Get search parameters from the URL. This is only for searching by film name
@@ -89,7 +89,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					}
 
 					//director
-					if ( $director[0] == "Any") {
+					if ( $director[0] == "Any" || $director[0] == "") {
 						$director_criteria = "";
 					} else {
 						$director_criteria = "fd.`director_id` IN (";
@@ -107,7 +107,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					}
 
 					//gender
-					if ( $gender[0] == "Any") {
+					if ( $gender[0] == "Any" || $gender[0] == "") {
 						$gender_criteria = "";
 					} else {
 						$gender_criteria = "d.`director_gender` IN (";
@@ -125,7 +125,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					}
 					
 					//studio
-					if ( $studio[0] == "Any") {
+					if ( $studio[0] == "Any" || $studio[0] == "") {
 						$studio_criteria = "";
 					} else {
 						$studio_criteria = "fs.`studio_id` IN (";
@@ -143,7 +143,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					}
 					
 					//language
-					if ( $language[0] == "Any") {
+					if ( $language[0] == "Any" || $language[0] == "") {
 						$language_criteria = "";
 					} else {
 						$language_criteria = "fl.`language_id` IN (";
@@ -161,7 +161,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					}
 
 					//country
-					if ( $country[0] == "Any") {
+					if ( $country[0] == "Any" || $country[0] == "") {
 						$country_criteria = "";
 					} else {
 						$country_criteria = "fc.`country_id` IN (";
@@ -179,7 +179,7 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					}
 
 					//tag
-					if ( $tag[0] == "Any") {
+					if ( $tag[0] == "Any" || $tag[0] == "") {
 						$tag_criteria = "";
 					} else {
 						$tag_criteria = "ft.`tag_id` IN (";
@@ -203,8 +203,26 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 					$condition ="";
 					//depending on the type of result, the sql QUERY would differ
 					if ( $_POST["result_type"] == "chart" ) {
-						$sql = "SELECT films.film_release_year AS year, COUNT(*) AS count FROM ( ";
-						$sql .= "SELECT DISTINCT f.film_id, f.film_release_year ";
+						$chart_by = filter_var($_POST["chart_by"], FILTER_SANITIZE_STRING);
+						switch ($chart_by) {
+							case "year":
+								$sql = "SELECT films.film_release_year AS year, COUNT(*) AS count FROM ( ";
+								$sql .= "SELECT DISTINCT f.film_id, f.film_release_year ";
+								break;
+							case "country":
+								$sql = "SELECT films.film_release_year AS year, COUNT(*) AS count FROM ( ";
+								$sql .= "SELECT DISTINCT f.film_id, f.film_release_year ";
+								break;
+							case "language":
+								$sql = "SELECT films.film_release_year AS year, COUNT(*) AS count FROM ( ";
+								$sql .= "SELECT DISTINCT f.film_id, f.film_release_year ";
+								break;
+							default:
+								$sql = "SELECT films.film_release_year AS year, COUNT(*) AS count FROM ( ";
+								$sql .= "SELECT DISTINCT f.film_id, f.film_release_year ";
+								break;
+						}
+						
 					} else {
 						$sql = "SELECT DISTINCT f.*, ";
 						$sql .="GROUP_CONCAT(DISTINCT d.director_id ORDER BY d.director_name ASC SEPARATOR ',') AS director_ids, ";
@@ -390,6 +408,8 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 														echo "<a href='details.php?id=" . $row['film_id'] . "'>";
 														echo "<img class='listimg' src='/img/films/" . $row['film_id'] . "_tn.png' alt='" . $row['film_title'] . "' />";
 														echo "</a>";
+													} else {
+														echo "<img class='listimg' src='/img/no_img.png' alt='" . $row['film_title'] . "' />";
 													}
 													?>
 													<a href="details.php?id=<?php echo $row['film_id']; ?>"><strong><?php echo $row['film_title'];?></strong>
@@ -492,7 +512,8 @@ if (empty($_POST["director"]) && empty($_GET['query'])) {
 						}
 
 						if ($_POST["result_type"] == "chart") {
-							echo "<p class='result_criteria'>Chart: animated short films by $title_criteria per year</p>";
+							$chart_by = filter_var($_POST['chart_by'], FILTER_SANITIZE_STRING);
+							echo "<p class='result_criteria'>Chart: animated short films by $title_criteria per $chart_by</p>";
 							?>							
 								<canvas id="myChart" style="width:100%;"></canvas>
 							
